@@ -8,19 +8,19 @@ Lately, **DeepSeek R1** has been creating a massive buzz in the AI community wit
 
 In this post, I’ll show you how to run DeepSeek R1 on a **Raspberry Pi 4**, proving that even a tiny computer can unleash the potential of advanced AI. This local deployment means no data sharing with external companies, no internet dependency, and complete control over your own LLM—making it an ideal solution for privacy-conscious users and hobby users. Let’s dive into how to bring this high-performing model right to your hands!
 
-### Overview
+## Overview
 
 As we discussed DeepSeek R1 is renowned for its exceptional reasoning capabilities, achieved through cutting-edge reinforcement learning. While the original model features an enormous 671-billion-parameter architecture, running it locally isn’t feasible on modest hardware like a Raspberry Pi 4.
 
 To bridge this gap, we will use a distilled version: **DeepSeek-R1-Distill-Qwen-1.5B**. In simple terms, **model distillation** is a process where the knowledge from a large, powerful model (often called the teacher) is transferred to a much smaller, more efficient model (the student). To learn more about distillation you can read [this great article](https://labelbox.com/guides/model-distillation/).
 
-#### Why bother?
+### Why bother?
 
 You might be asking why do we need to run it locally, let alone a Raspberry Pi? Running an LLM locally creates an opportunity for a user(s) to completely control and manage the data they produce. Without relying on external servers, you can ensure that sensitive information remains private, easily customize the model’s behavior to your specific needs, and avoid potential downtime or latency issues associated with cloud services. This level of control not only enhances security but also empowers developers and hobbyists to experiment and innovate in a truly independent environment—all on a cost-effective, compact device like the Raspberry Pi 4.
 
-Now let's dive into technical details
+**Now let's dive into technical details.**
 
-### Prerequisites
+## Prerequisites
 
 1. Hardware requirements
 
@@ -31,19 +31,24 @@ Now let's dive into technical details
 2. Software Requirements
 
    - [Raspberry Pi Imager](https://www.raspberrypi.com/software/): We will install Raspberry Pi OS **Lite** to our Raspberry
+   - [cmake](https://cgold.readthedocs.io/en/latest/first-step/installation.html): for building llama.cpp
 
 3. Background Knowledge
    - Familiarity with Linux terminal
 
-### Environment Setup
+## Environment Setup
 
 I am using Raspbbery Pi 4 (4GB RAM) as my own device to run the DeepSeek-R1-Distill-Qwen-1.5B model. You will be good to go for any model newer than Pi 4 and have more than 4GB RAM with this guide.
 
-#### Install Raspberry Pi OS **Lite** (64-bit)
+### Install Raspberry Pi OS **Lite** (64-bit)
 
-For our case we will use the **Lite** version of Raspberry Pi OS since we do not want to lose any computational resources for Desktop Environment services. We will use terminal to start inference on our Pi. You can either connect to Pi via SSH or use keyboard and a monitor to enter command.
+For our case we will use the **Lite** version of Raspberry Pi OS since we do not want to lose any computational resources for Desktop Environment services. Follow [this guide](https://www.raspberrypi.com/documentation/computers/getting-started.html#raspberry-pi-imager) for installation steps.
 
-#### Building llama.cpp
+### Connection to Pi
+
+We will use terminal to start inference on our Pi. You can either [connect to Pi via SSH](https://www.raspberrypi.com/documentation/computers/remote-access.html#ssh) or use keyboard and a monitor to enter commands I will describe.
+
+### Building llama.cpp
 
 llama.cpp is a standalone, low-level C++ implementation that minimizes overhead by eliminating the extra abstraction layer that Ollama introduces for automation and model management. This results in faster, more efficient inference and greater flexibility when deploying on resource-constrained devices like the Raspberry Pi 4. First we need to build llama.cpp so that we are able to use it.
 
@@ -69,9 +74,7 @@ llama.cpp is a standalone, low-level C++ implementation that minimizes overhead 
    sudo cp "$(pwd)/build/bin/llama-server" /usr/local/bin/llama-server
    ```
 
-Now we can easily use llama.cpp via `llama-cli` or `llama-server`
-
-#### Download and Run Deepseek R1 1.5B
+### Download and Run Deepseek R1 1.5B
 
 We will use a [4-bit quantized GGUF version of Deepseek R1](https://huggingface.co/bartowski/DeepSeek-R1-Distill-Qwen-1.5B-GGUF/blob/main/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf)
 
@@ -84,7 +87,7 @@ wget -O models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf https://huggingface.co/
 3-2-1 GO!
 
 ```shell
-llama-server -m models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf \
+llama-cli -m models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf \
        -n 1024 \
        --ctx-size 4096 \
        -b 32 \
@@ -93,9 +96,31 @@ llama-server -m models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf \
        --mlock
 ```
 
-This command runs a [OpenAI API compatible HTTP server](https://github.com/ggerganov/llama.cpp?tab=readme-ov-file#llama-server)! You can reach it on localhost:8080
+This command loads the model and lets you get answers directly inside Terminal. On Raspberry Pi 4 with a fan it should give approximately 3.5-4 Token/second (10-14 character/second) performance.
 
-On Raspberry Pi 4 with a fan it should give approximately 3-3.5 Token/sec performance. You can squeeze a little bit more TPS with `llama-cli` command with same parameters.
+![alt text](image-3.png)
+![alt text](llama-cli.gif)
+
+### Use Raspberry Pi 4 as a Deepseek R1 server
+
+Using llama.cpp's llama-server command we can easily serve an [OpenAI API compatible HTTP server](https://github.com/ggerganov/llama.cpp?tab=readme-ov-file#llama-server) and even a web interface to use it!
+
+Simply run:
+
+```shell
+llama-server -m models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf \
+       --host 0.0.0.0 \
+       -n 1024 \
+       --ctx-size 4096 \
+       -b 32 \
+       --threads 4 \
+       --no-mmap \
+       --mlock
+```
+
+This will create a local server inside Raspbbery Pi 4. If you are on the same network with the Pi you can simply enter `http://raspberrypi.local:8080` in your browser and start using DeepSeek R1 with a web interface!
+
+![alt text](image-4.png)
 
 Here are meanings of parameters we used, you can also check other parameters [here](https://github.com/ggerganov/llama.cpp/tree/master/examples/server):
 
@@ -105,6 +130,10 @@ Here are meanings of parameters we used, you can also check other parameters [he
 - `--threads 4`: Caps the CPU threads to efficiently use the Raspberry Pi 4’s quad-core processor.
 - `--no-mmap`: Disables memory mapping to avoid slow I/O on the Pi’s SD card or USB storage.
 - `--mlock`: Locks the model in RAM to prevent swapping, improving performance on limited memory systems.
+
+## Conclusion
+
+In summary, we've demonstrated that even a modest Raspberry Pi 4 can power an advanced LLM like DeepSeek R1 using llama.cpp. By leveraging the distilled DeepSeek-R1-Distill-Qwen-1.5B model and optimizing system parameters, you gain complete local control, enhanced privacy, and cost-effective, efficient inference. This setup opens exciting opportunities for hobbyists and developers to experiment with cutting-edge AI in a fully independent environment.
 
 <!--
    Here are the steps to install Raspberry Pi OS **Lite**:
