@@ -101,7 +101,7 @@ This command loads the model and lets you get answers directly inside Terminal. 
 (GIF demonstrates 3x speedup)
 ![alt text](llama-cli2.gif)
 
-### Use with a Web UI and as server
+### OpenAI API compatible HTTP server and Web UI
 
 Using llama.cpp's llama-server command we can easily serve an [OpenAI API compatible HTTP server](https://github.com/ggerganov/llama.cpp?tab=readme-ov-file#llama-server) and even a web interface to use it!
 
