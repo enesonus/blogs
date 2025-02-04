@@ -98,10 +98,10 @@ llama-cli -m models/DeepSeek-R1-Distill-Qwen-1.5B-Q4_K_M.gguf \
 
 This command loads the model and lets you get answers directly inside Terminal. On Raspberry Pi 4 with a fan it should give approximately 3.5-4 Token/second (10-14 character/second) performance.
 
-![alt text](image-3.png)
-![alt text](llama-cli.gif)
+(GIF demonstrates 3x speedup)
+![alt text](llama-cli2.gif)
 
-### Use Raspberry Pi 4 as a Deepseek R1 server
+### Use with a Web UI and as server
 
 Using llama.cpp's llama-server command we can easily serve an [OpenAI API compatible HTTP server](https://github.com/ggerganov/llama.cpp?tab=readme-ov-file#llama-server) and even a web interface to use it!
 
